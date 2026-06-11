@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>2026 世界杯竞猜 · App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="wc-styles.css" />
+<style>
+  html, body { margin: 0; height: 100%; background: #E9E6DE; }
+  #root { height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="wc-data.js"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="android-frame.jsx"></script>
+<script type="text/babel" src="wc-ui.jsx"></script>
+<script type="text/babel" src="wc-store.jsx"></script>
+<script type="text/babel" src="wc-login.jsx"></script>
+<script type="text/babel" src="wc-bet.jsx"></script>
+<script type="text/babel" src="wc-rank.jsx"></script>
+<script type="text/babel" src="wc-profile.jsx"></script>
+<script type="text/babel" src="wc-app.jsx"></script>
+
+<script type="text/babel">
+const { useTweaks, TweaksPanel, TweakSection, TweakColor, TweakRadio } = window;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "#00C26E",
+  "platform": "iOS",
+  "oddsFormat": "小数"
+}/*EDITMODE-END*/;
+
+const ACCENTS = ['#00C26E', '#2563EB', '#E5147D', '#FF6A1A'];
+
+function Root() {
+  const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const platform = tw.platform === 'Android' ? 'android' : 'ios';
+  const t = { accent: tw.accent, platform, oddsFormat: tw.oddsFormat === '分数' ? 'fraction' : 'decimal' };
+  const Device = platform === 'android' ? window.AndroidDevice : window.IOSDevice;
+  const dims = platform === 'android' ? { width: 412, height: 892 } : { width: 402, height: 874 };
+
+  return (
+    <React.Fragment>
+      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <Device width={dims.width} height={dims.height}>
+          <WCApp t={t} />
+        </Device>
+      </div>
+      <TweaksPanel>
+        <TweakSection label="设备" />
+        <TweakRadio label="平台" value={tw.platform} options={['iOS', 'Android']} onChange={(v) => setTweak('platform', v)} />
+        <TweakSection label="主题" />
+        <TweakColor label="主色" value={tw.accent} options={ACCENTS} onChange={(v) => setTweak('accent', v)} />
+        <TweakSection label="赔率" />
+        <TweakRadio label="显示格式" value={tw.oddsFormat} options={['小数', '分数']} onChange={(v) => setTweak('oddsFormat', v)} />
+      </TweaksPanel>
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
+</script>
+</body>
+</html>

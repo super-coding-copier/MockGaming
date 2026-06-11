@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# build / deps (none needed — pure static)
+node_modules/
+
+# screenshots / scratch
+screenshots/
+_test_*
+scraps/
