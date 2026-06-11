@@ -19,6 +19,9 @@
     const [sel, setSel] = useState({});
     const [stake, setStake] = useState(100);
 
+    if (!auth.ready) {
+      return <div className={'app' + (t.platform === 'android' ? ' is-android' : '')} style={{ '--accent': t.accent }}><div className="login"><div className="login-hero"><div className="login-title" style={{textAlign:'center'}}>加载中...</div></div></div></div>;
+    }
     if (!auth.me) {
       return <div className={'app' + (t.platform === 'android' ? ' is-android' : '')} style={{ '--accent': t.accent }}><LoginScreen auth={auth} /></div>;
     }

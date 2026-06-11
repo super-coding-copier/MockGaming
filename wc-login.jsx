@@ -13,14 +13,14 @@
 
     const featured = SEED_USERS.slice(0, 6);
 
-    const submit = () => {
+    const submit = async () => {
       setErr('');
-      const r = mode === 'login' ? auth.login(u, pwd) : auth.register(name, u, pwd);
+      const r = mode === 'login' ? await auth.login(u, pwd) : await auth.register(name, u, pwd);
       if (!r.ok) setErr(r.err);
     };
-    const quick = (acc) => {
+    const quick = async (acc) => {
       setErr('');
-      const r = auth.login(acc.u, PWD);
+      const r = await auth.login(acc.u, PWD);
       if (!r.ok) setErr(r.err);
     };
 
@@ -68,7 +68,7 @@
                   </button>
                 ))}
               </div>
-              <div className="login-hint">所有体验账号密码均为 123456 · 数据仅存本机</div>
+              <div className="login-hint">所有体验账号密码均为 123456 · 数据存于 data.json</div>
             </div>
           )}
         </div>

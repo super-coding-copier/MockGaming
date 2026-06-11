@@ -54,9 +54,9 @@
     const bump = (d) => setStake(s => Math.max(10, Math.round((s + d) / 10) * 10));
 
     const me = auth.me;
-    const place = () => {
+    const place = async () => {
       if (!count) return;
-      const r = auth.placeBet({
+      const r = await auth.placeBet({
         stake, combined, payout,
         legs: legs.map(l => ({ home: l.match.home.name, away: l.match.away.name, grp: l.match.grp, pick: OUT[l.outcome], odds: l.odds })),
       });
