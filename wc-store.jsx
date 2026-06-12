@@ -1,82 +1,114 @@
-// Auth + per-user state via REST API → data.json. Simulates a multi-user backend.
+// Auth + API state via REST backend -> window.useAuth
 (function () {
   const { useState, useEffect, useCallback } = React;
 
   const API_BASE = window.WC_API_BASE || '';
   const API = API_BASE + '/api';
-  const SESSION_KEY = 'wc_session_v1';
+  const TOKEN_KEY = 'wc_token_v2';
+  const USER_KEY = 'wc_session_v1';
 
-  async function api(method, path, body) {
+  async function api(method, path, body, token) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (token) opts.headers.Authorization = 'Bearer ' + token;
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(API + path, opts);
-    return res.json();
+    const data = await res.json().catch(() => ({ ok: false, err: '服务返回异常' }));
+    if (!res.ok && data.ok !== false) data.ok = false;
+    return data;
+  }
+
+  function readStored(key) {
+    try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
+  }
+
+  function writeStored(key, value) {
+    try {
+      if (value) localStorage.setItem(key, value);
+      else localStorage.removeItem(key);
+    } catch (e) {}
   }
 
   function useAuth() {
-    const [db, setDb] = useState(null);       // null = 未加载
-    const [session, setSession] = useState(() => {
-      try { return localStorage.getItem(SESSION_KEY) || null; } catch (e) { return null; }
-    });
+    const [token, setToken] = useState(() => readStored(TOKEN_KEY));
+    const [session, setSession] = useState(() => readStored(USER_KEY));
+    const [db, setDb] = useState(null);
+    const [matches, setMatches] = useState([]);
 
-    // 初始化：从服务端拉取全量数据
+    const refresh = useCallback(async (nextToken = token) => {
+      const data = await api('GET', '/state', null, nextToken);
+      setDb(data.users || {});
+      setMatches(data.matches || []);
+      if (!data.me && nextToken) {
+        setToken('');
+        setSession('');
+        writeStored(TOKEN_KEY, '');
+        writeStored(USER_KEY, '');
+      }
+      return data;
+    }, [token]);
+
     useEffect(() => {
-      (async () => {
-        try {
-          const data = await api('GET', '/state');
-          setDb(data.users || {});
-        } catch (e) {
-          console.error('加载数据失败', e);
-          setDb({});
-        }
-      })();
+      refresh().catch((e) => {
+        console.error('加载数据失败', e);
+        setDb({});
+        setMatches([]);
+      });
     }, []);
 
     const login = useCallback(async (u, pwd) => {
       const r = await api('POST', '/login', { u, pwd });
       if (r.ok) {
-        setSession(u.trim().toLowerCase());
-        try { localStorage.setItem(SESSION_KEY, u.trim().toLowerCase()); } catch (e) {}
-        // 刷新本地数据
-        const data = await api('GET', '/state');
-        setDb(data.users || {});
+        const key = r.user.u;
+        setToken(r.token);
+        setSession(key);
+        writeStored(TOKEN_KEY, r.token);
+        writeStored(USER_KEY, key);
+        await refresh(r.token);
       }
       return r;
-    }, []);
+    }, [refresh]);
 
     const register = useCallback(async (name, u, pwd) => {
-      const r = await api('POST', '/register', { name, u, pwd });
-      if (r.ok) {
-        const key = u.trim().toLowerCase();
-        setSession(key);
-        try { localStorage.setItem(SESSION_KEY, key); } catch (e) {}
-        const data = await api('GET', '/state');
-        setDb(data.users || {});
-      }
-      return r;
-    }, []);
+      return api('POST', '/register', { name, u, pwd }, token);
+    }, [token]);
 
-    const logout = useCallback(() => {
-      setSession(null);
-      try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
-    }, []);
+    const logout = useCallback(async () => {
+      if (token) await api('POST', '/logout', {}, token).catch(() => null);
+      setToken('');
+      setSession('');
+      writeStored(TOKEN_KEY, '');
+      writeStored(USER_KEY, '');
+      await refresh('');
+    }, [token, refresh]);
 
     const placeBet = useCallback(async (bet) => {
-      if (!session) return;
-      const r = await api('POST', '/bet', { u: session, bet });
-      if (r.ok) {
-        // 刷新本地数据
-        const data = await api('GET', '/state');
-        setDb(data.users || {});
-      }
+      if (!token) return { ok: false, err: '请先登录' };
+      const r = await api('POST', '/bet', bet, token);
+      if (r.ok) await refresh(token);
       return r;
-    }, [session]);
+    }, [token, refresh]);
+
+    const changePassword = useCallback(async (oldPwd, newPwd) => {
+      const r = await api('POST', '/change-password', { oldPwd, newPwd }, token);
+      if (r.ok) await refresh(token);
+      return r;
+    }, [token, refresh]);
+
+    const adminApi = useCallback(async (method, path, body) => {
+      const r = await api(method, path, body, token);
+      if (r.ok && path !== '/admin/state') await refresh(token);
+      return r;
+    }, [token, refresh]);
 
     const ready = db !== null;
     const me = ready && session ? db[session] : null;
-    const users = ready ? Object.values(db) : [];
+    const users = ready ? Object.values(db).filter(u => u.role !== 'admin') : [];
+    const allUsers = ready ? Object.values(db) : [];
 
-    return { me, users, session, login, register, logout, placeBet, ready };
+    return {
+      ready, token, session, me, users, allUsers, matches,
+      login, register, logout, refresh, placeBet, changePassword, adminApi,
+    };
   }
 
   window.useAuth = useAuth;

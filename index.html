@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>2026 世界杯竞猜 · App</title>
+<title>MockGaming · 世界杯积分竞猜</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="wc-styles.css" />
 <style>
-  html, body { margin: 0; height: 100%; background: #E9E6DE; }
-  #root { height: 100%; }
+  html, body { margin: 0; min-height: 100%; background: #F6F3ED; }
+  #root { min-height: 100vh; }
 </style>
 </head>
 <body>
@@ -21,57 +21,23 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <script src="wc-data.js"></script>
-<script type="text/babel" src="tweaks-panel.jsx"></script>
-<script type="text/babel" src="ios-frame.jsx"></script>
-<script type="text/babel" src="android-frame.jsx"></script>
 <script type="text/babel" src="wc-ui.jsx"></script>
-<!-- 🔧 远程数据服务器地址（留空则使用本地后端） -->
 <script>
-  // 部署 server.py 后，把下面这行的注释取消并填入地址：
-  // window.WC_API_BASE = 'https://你的服务地址';
+  // 部署 server.py 到远程服务后，可在这里填写后端地址。
+  // window.WC_API_BASE = 'https://your-api.example.com';
 </script>
 <script type="text/babel" src="wc-store.jsx"></script>
 <script type="text/babel" src="wc-login.jsx"></script>
 <script type="text/babel" src="wc-bet.jsx"></script>
 <script type="text/babel" src="wc-rank.jsx"></script>
 <script type="text/babel" src="wc-profile.jsx"></script>
+<script type="text/babel" src="wc-admin.jsx"></script>
 <script type="text/babel" src="wc-app.jsx"></script>
 
 <script type="text/babel">
-const { useTweaks, TweaksPanel, TweakSection, TweakColor, TweakRadio } = window;
-
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "accent": "#00C26E",
-  "platform": "iOS",
-  "oddsFormat": "小数"
-}/*EDITMODE-END*/;
-
-const ACCENTS = ['#00C26E', '#2563EB', '#E5147D', '#FF6A1A'];
-
 function Root() {
-  const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const platform = tw.platform === 'Android' ? 'android' : 'ios';
-  const t = { accent: tw.accent, platform, oddsFormat: tw.oddsFormat === '分数' ? 'fraction' : 'decimal' };
-  const Device = platform === 'android' ? window.AndroidDevice : window.IOSDevice;
-  const dims = platform === 'android' ? { width: 412, height: 892 } : { width: 402, height: 874 };
-
-  return (
-    <React.Fragment>
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <Device width={dims.width} height={dims.height}>
-          <WCApp t={t} />
-        </Device>
-      </div>
-      <TweaksPanel>
-        <TweakSection label="设备" />
-        <TweakRadio label="平台" value={tw.platform} options={['iOS', 'Android']} onChange={(v) => setTweak('platform', v)} />
-        <TweakSection label="主题" />
-        <TweakColor label="主色" value={tw.accent} options={ACCENTS} onChange={(v) => setTweak('accent', v)} />
-        <TweakSection label="赔率" />
-        <TweakRadio label="显示格式" value={tw.oddsFormat} options={['小数', '分数']} onChange={(v) => setTweak('oddsFormat', v)} />
-      </TweaksPanel>
-    </React.Fragment>
-  );
+  const t = { accent: '#C96442', platform: 'web', oddsFormat: 'decimal' };
+  return <WCApp t={t} />;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<Root />);

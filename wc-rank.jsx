@@ -1,4 +1,4 @@
-// 积分榜 → window.RankScreen
+// Ranking screen -> window.RankScreen
 (function () {
   const { useState } = React;
   const { pts, initial } = window;
@@ -47,10 +47,10 @@
         </div>
 
         <div className="lb-me">
-          <div className="rk"><small>我的排名</small>#{myRank}</div>
+          <div className="rk"><small>我的排名</small>#{myRank || '-'}</div>
           <div className="mid">
             <b>{me.hit}</b>
-            <div>{ahead ? `距上一名还差 ${pts(ahead.pts - me.pts)} 分` : '榜首王者 · 继续保持'}</div>
+            <div>{ahead ? `距上一名还差 ${pts(ahead.pts - me.pts)} 分` : '榜首 · 继续保持'}</div>
           </div>
           <div className="pt">
             <b className="num">{pts(me.pts)}</b>

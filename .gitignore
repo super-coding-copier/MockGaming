@@ -15,3 +15,6 @@ scraps/
 
 # local data (contains passwords and user data)
 data.json
+mockgaming.sqlite3
+mockgaming.sqlite3-*
+__pycache__/
